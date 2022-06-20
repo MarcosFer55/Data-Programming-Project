@@ -1,0 +1,152 @@
+---
+title: "Student Performance"
+author: "Marcos Fernandez Fernandez"
+date: '2022-06-17'
+output: 
+ html_document:
+  toc: true
+  toc_float: true
+  theme: "journal"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning = FALSE,error = T)
+
+library("lubridate")
+library("readxl")
+library("tidyverse")
+library("bookdown")
+
+student_data <- read.csv("~/Data Programming/Project/student_data.csv")
+academic_performance <- read.csv("~/Data Programming/Project/StudentsPerformance.csv")
+
+```
+
+# Introduction
+
+
+Education is one of the most important aspects of human development. The Student's performance plays a crucial role in making quality graduates that will in terms become great leaders that are responsible for the development of our country. Academic achievements, such as secondary school diplomas and bachelor degrees, are one of the major factors considered by employers in hiring workers. Adults who are academically successful and with high levels of education are more likely to be employed, have stable employment, have more employment opportunities, and earn higher salaries than those with less education. Thus, students have to put the greatest effort in their study to obtain good grades and to prepare themselves for future opportunities in their career at the same time to fulfill the employer’s demand.
+
+
+## Student Performance
+
+
+Research has shown  dropout and repetition rates appear to be most common among students from low socio-economic backgrounds. Which in other words means that student's academic performance is being affected by factors which include, the students’ learning skills, parental background, peer influence, teachers’ quality, learning infrastructure among others.
+
+<center>
+```{r image, fig.cap="Children in Classroom", out.width = '100%'}
+knitr::include_graphics("~/Data Programming/Project/student.jpg")
+```
+</center>
+
+## Data Sets
+
+In the first data set, we will explore a survey done to students in a secondary school math course.This data set compares family relations of the student with their school performance. Some of the variables include: gender, age, size of family, Father education, Mother education, Occupation of Father and Mother, Family Relation, Health, and Grades.
+
+(Data set by Dev Ansodariya)
+
+```{r}
+head(student_data)
+```
+
+On the other hand, the second data set consists of the marks secured by the students in various subjects. In this data set we can see the student's parents background as well as test preparation, and how it may influence student performance.
+
+(Data set by Bharti Prasad)
+
+```{r}
+head(academic_performance)
+```
+
+# Data Analysis
+
+Before we begin, the data sets have to be prepared so that they can be compared among each other.
+
+```{r}
+student_data['Percentage'] = ((student_data['G1']+student_data['G2']+student_data['G3'])/60) * 100
+
+student_data %>% select(G1, G2, G3, Percentage) %>% head()
+
+```
+
+```{r}
+academic_performance['Percentage'] = (academic_performance['math.score']+academic_performance['reading.score']+academic_performance['writing.score'])/3
+
+academic_performance %>% select(math.score, reading.score, writing.score, Percentage) %>% head()
+
+```
+
+## Gender vs Student Performance
+
+Now that we have the grade percentage for all the students, we can start looking for factors that influence a student's academic performance. First, we can begin comparing the students by gender.
+
+```{r}
+student_data %>% ggplot() + geom_bar(aes(y = Percentage, fill = sex), position = 'dodge') + labs(title = "Gender by Student Performance", caption = "Data set 1" )
+
+student_data %>% group_by(sex) %>% summarise(Percentage = mean(Percentage))
+```
+
+According to the first data set, female students have a lower grade point average than male students.
+
+```{r}
+academic_performance %>% ggplot() + geom_bar(aes(y = Percentage, fill = gender), position = 'dodge') + labs(title = "Gender by Student Performance", caption = "Data set 2" )
+
+academic_performance %>% group_by(gender) %>% summarise(Percentage = mean(Percentage))
+```
+
+But when we look at the second data set, we can see that female students now have a higher grade point average than male students. So in other words, gender does not influence a student's academic performance.
+
+## Parent's Education vs Student Performance
+
+Now we take a look at the academic level achieved by a student's parent and compare it to the grade point average achieved by their child.
+
+```{r}
+
+academic_performance %>% ggplot() + geom_boxplot(aes(x = parental.level.of.education, y = Percentage, fill = parental.level.of.education), varwidth = T) + labs(title = "Performance by Parent's Education", x = "Parental Level of Education", y = "Grade Percentage", caption = "Data set 2")
+
+```
+
+Based off the second data set, we can see that students whose parents achieved higher education perform better in school. 
+
+```{r}
+student_data %>% mutate(Medu = case_when(Medu == 0 ~ "some high school", Medu == 1 ~ "high school", Medu == 2 ~ "some college", Medu == 3 ~ "associate's degree", Medu == 4 ~ "bachelor's degree", Medu == 5 ~ "master's degree")) %>% ggplot() + geom_boxplot(aes(x = Medu, y = Percentage, fill = Medu), varwidth = T) + labs(title = "Performance by Mother's Education", x = "Mother's Level of Education", y = "Grade Percentage", caption = "Data set 1")
+
+student_data %>% mutate(Fedu = case_when(Fedu == 0 ~ "some high school", Fedu == 1 ~ "high school", Fedu == 2 ~ "some college", Fedu == 3 ~ "associate's degree", Fedu == 4 ~ "bachelor's degr", Fedu == 5 ~ "master's degree")) %>% ggplot() + geom_boxplot(aes(x = Fedu, y = Percentage, fill = Fedu), varwidth = T) + labs(title = "Performance by Father's Education", x = "Father's Level of Education", y = "Grade Percentage", caption = "Data set 1")
+```
+
+And according the first data set, the trend continues where students with parents that accomplished higher levels of educations, are performing better in school. It is also interesting to look at how even if the father has completed higher educational benchmarks or if the mother did, the results will remain the same, the student will still benefit and will have a higher quality of performance at school.
+
+## Internet vs Student Perfromance
+
+Next we will take a look at how performance is affected by the lack of internet at a student's household
+
+```{r}
+student_data %>% ggplot() + geom_histogram(aes(y = Percentage, fill = internet), position = 'dodge') + labs(title = "Internet by Student Performance", caption = "Data set 1" )
+
+student_data %>% group_by(internet) %>% summarise(Percentage = mean(Percentage))
+```
+
+Based on the graph and the two averages, we can conclude that the lack of internet is affecting the academic performance of a student.
+
+## Parent Job vs Student Performance
+
+Lastly we will compare the student's performance by what their parents do for a living.
+
+```{r}
+student_data %>% ggplot() + geom_boxplot(aes(x = Mjob, y = Percentage, fill = Mjob), varwidth = T) + labs(title = "Performance by Mother's Job", x = "Mother's Job", y = "Grade Percentage", caption = "Data set 1")
+
+student_data %>% ggplot() + geom_boxplot(aes(x = Fjob, y = Percentage, fill = Fjob), varwidth = T) + labs(title = "Performance by Father's Job", x = "Father's Job", y = "Grade Percentage", caption = "Data set 1")
+```
+
+According to the graphics, students with a mother in the medical field will perform better in school, and students with a father who works as a teacher will also be better in school.
+
+# Conclusion 
+
+To conclude, a students performance in school does not depend on the gender they are but their family situation. A student with well educated parents, that work in fields such as medicine and education, will have a more supportive and helpful relation from their parents which in terms will boost their academic performance. Also factors such as lack of internet can also cause a student to perform poorly in school.
+
+## Sources
+
+Data set 1: https://www.kaggle.com/code/devansodariya/student-performance-analytics/data
+
+Data set 2: https://www.kaggle.com/code/bhartiprasad17/student-academic-performance-analysis/data
+
+
