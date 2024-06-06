@@ -1,0 +1,1 @@
+For all interested, this was a final project for my course in Data Programming. While the aim of the project was not necesarily the results (as we used piblic data), this project focused on the different aspects of the R coding language as a data programming tool. To me this course served as a starting point for data analysis so please do not judge very hard. 
